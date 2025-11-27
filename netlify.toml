@@ -1,17 +1,10 @@
 [build]
-command = "npm run build"
-publish = ".next"
+command = "npm install --legacy-peer-deps && npm run build"
+publish = ".next/static"
+functions = ".next/server"
 
 [build.environment]
 NODE_VERSION = "20"
-NODE_ENV = "production"
 
-[[redirects]]
-from = "/*"
-to = "/index.html"
-status = 200
-
-[[headers]]
-for = "/*"
-[headers.values]
-Cache-Control = "public, max-age=3600"
+[[plugins]]
+package = "@netlify/plugin-nextjs"

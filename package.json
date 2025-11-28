@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "export": "next build && next export",
+    "deploy": "npm run export && echo 'Static site ready for deployment'"
   },
   "dependencies": {
     "next": "latest",

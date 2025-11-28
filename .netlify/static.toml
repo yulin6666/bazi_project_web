@@ -1,0 +1,331 @@
+[build]
+command = "npm run build && npm run export"
+publish = "dist"  # Next.js 静态导出目录
+
+[build.environment]
+NODE_VERSION = "20"
+
+# 配置重定向
+[[redirects]]
+from = "/api/*"
+to = "/api/:splat"
+status = 200
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+
+# 缓存配置
+[[headers]]
+for = "/static/*"
+[headers.values]
+Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+for = "/*.json"
+[headers.values]
+Cache-Control = "public, max-age=3600"
+
+[[headers]]
+for = "/*.js"
+[headers.values]
+Cache-Control = "public, max-age=86400"
+
+[[headers]]
+for = "/_next/*"
+[headers.values]
+Cache-Control = "public, max-age=31536000"
+
+# GitHub Pages 兼容
+[[headers]]
+for = "/*"
+[headers.values]
+Content-Type = "text/html"
+Cache-Control = "public, max-age=3600"
+X-Frame-Options = "DENY"
+X-Content-Type-Options = "nosniff"
+"Access-Control-Allow-Origin" = "*"  # 如果有跨域需要
+
+# 纯静态站点 - 所有路由都到 index.html (除了 API)
+[[redirects]]
+from = "/page-*"
+to = "/:splat"
+status = 200
+
+# 适用于单页应用
+[[redirects]]
+from = "/digui*"
+to = "/digui/index.html"
+status = 200
+
+[[redirects]]
+for = "match"
+from = "/(?!\d+)"
+to = "/index.html"
+if = "neq"
+
+# SEO 友好的 HEAD 请求处理
+[[headers]]
+for = "/"
+[headers.values]
+Access-Control-Allow-Headers = "Content-Type"
+Access-Control-Allow-Methods = "GET, POST"
+Access-Control-Allow-Origin = "*"
+
+# 设置文本编码
+[[headers]]
+for = "*"
+[headers.values]
+Content-Type = "text/html; charset=utf-8"
+
+# 页面预加载优化
+null redirects = []
+[[redirects]]
+null-redirect = []
+
+[[redirects]]
+from = "/_app/static/*"
+to = "/_next/static/*"
+status = 200
+for = "_next"
+
+# HTML5 SPA 重定向 - 所有路由都到 index.html
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200!  # ! 让重定向先于 SPA 重定向生效
+except = "/api*"  # 除非有实际文件或 API 路径
+
+# 健康检查端点
+[[plugins]]
+package = "netlify-plugin-submit-sitemap"
+[plugins.inputs]
+baseUrl = "https://your-domain.on.netlify.app"
+sitemapPath = "/sitemap.xml"
+tool = "quincy"
+for = "ping"
+
+# 面包屑导航和结构化数据
+[metadata]
+meta_title = "道家八字排盘 - 命运分析应用"
+description = "专业的八字命理分析工具"
+canonical_url = "https://your-domain.on.netlify.app"
+base_url = "https://your-domain.on.netlify.app"
+social_image = "https://your-domain.on.netlify.app/favicon.ico"
+author = "玄学分析"
+name = "bazi-app"
+
+ успех HTML 文件
+/ Submodule 保签（如有）
+[[plugins]]
+package = "netlify-plugin-debug-cache"
+
+# HTML 文件预加载优化
+[[redirects]]
+from = "/_next/static/*"
+to = "/_next/static/:splat"
+status = 200
+for = "/_next/static"
+
+# Next.js 静态优化重定向
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+except = "/(.*)\.json"
+except = "/_next/static/*"
+except = "/api/*"
+
+# 完善错误处理
+[[redirects]]
+from = "/404"
+to = "/404.html"
+status = 404
+
+[[redirects]]
+from = "/500"
+to = "/500.html"
+status = 500
+
+# 自定义 404 页面
+[[redirects]]
+for = "404"
+from = "/*"
+to = "/404.html"
+status = 404
+
+# 访问控制 - 所有请求都返回 index.html 用于 SPAs
+[[redirects]]
+all_redirects = []
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+except = ["/assets/*", "/static/*", "*.png", "*.jpg", "*.pdf", "*.json", "/api/*"]
+
+# SSE (Server Sent Events) 支持 - 适用于 React/Next.js
+[[redirects]]
+for = "headers"
+from = "/events"
+to = "/events/stream"
+status = 200
+
+# Service Worker 优化
+[[plugins]]
+package = "netlify-plugin-submit-sitemap"
+target = "/sw.js"
+manifest = "/manifest.json"
+
+# PWA Manifest 优化
+[[plugins]]
+manifest = true
+package = "netlify-plugin-pwa-manifest"
+
+[plugins.inputs]
+manifest.json = "/manifest.json"
+sw = "/sw.js"
+
+[[plugins.manifest]]
+short_name = "八字排盘"
+name = "道家八字排盘 - 命运分析"
+start_url = "/"
+display = "standalone"
+theme_color = "#1a1a2e"  # 深蓝背景色
+background_color = "#1a1a2e"
+" categories = ["productivity", "lifestyle"]
+
+# 生成 Sitemap 优化
+[[plugins]]
+package = "netlify-plugin-submit-sitemap"
+sitemap_generator = true
+
+[plugins.inputs]
+baseUrl = "https://your-domain.app"
+sitemapPath = "/sitemap.xml"
+tool = "quincy"
+outFile = "/sitemap.xml"
+autoSearchIndex = true
+searchIndex = "["/", "/about", "/blog", "/app"]"
+
+[[plugins.submitSitemap]]
+baseUrl = "https://your-domain.app"
+sitemapPath = "/sitemap.xml"
+tool = "quicy"
+
+# 禁用服务发现 MJ12 应地鼠织
+[[build.ignore]]
+command = "git diff --quiet ~/.ssh/* && echo 'changed' || echo 'static'"
+except = ["master", "main"]
+
+# 构建统计和日志分析优化
+[build.statistics]
+enabled = true
+
+[build.uncategorized]
+[[redirects]]
+uncategorized_redirects = []
+
+# Netlify Build Plugin 禁用（提高速度）
+[build.plugins]
+enabled = false
+
+# 最终配置 - 静态导出 + SPA 模式 - 最通用
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+except = [
+  "/_next/static/*",
+  "/_next/image*",
+  "/api/*",
+  "/*.json",
+  "/*.xml",
+  "/*.txt",
+  "/*.ico",
+  "/*.png",
+  "/*.jpg",
+  "/*.jpeg",
+  "/*.gif",
+  "/*.ico",
+  "/*.svg"
+]
+
+# 最后 - 所有非匹配文件都重定向到 index.html
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+
+# 移除所有插件以减少复杂性
+[[plugins]]
+purge = true
+
+# 最后用简单的重定向
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+# 确保使用最新的
+--no-i18n=true
+
+# 最终测试版本 - 所有静态资源正常工作
+[[redirects]]
+from = "/_next/*"
+to = "/_next/"":splat
+status = 200
+
+# HTML5 SPA 路由支持 - 适用于 Next.js 静态导出
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+# 排除 API 和静态文件
+except = ["/api/*", "/_next/*", "*.json", "*.xml", "*.txt", "*.ico", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.svg", "*.webp", "*.woff", "*.woff2", "*.ttf", "*.eot"]
+
+# 健康检查端点和 API 路径 - 最后放置
+[[redirects]]
+from = "/_next/image/**"
+to = "/_next/image/"":splat
+status = 200
+
+[[redirects]]
+from = "/_next/static/**"
+to = "/_next/static/"":splat
+status = 200
+[[redirects]]
+from = "/api/**"
+to = "/api/"":splat
+status = 200
+
+# 最终：所有路由都转文件给 index.html （SPA模式）
+# 适用于 Next.js `output: 'export'`
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+
+[[plugins]]
+# 终极简化：纯静态 + HTML5 SPA
+package = "netlify-plugin-nextjs"
+
+[plugins.inputs]
+# Next.js 静态导出插件
+output = "export"
+target = "dist"
+publish = "dist"
+
+## Context': production 环境配置支持良好的 HTTP / HTTPS
+[
+[build]
+command = "npm run build && npm run export"
+publish = "dist"  # Next.js 静态导出目录
+
+[build.environment]
+NODE_VERSION = "20"
+
+*}/splat"
+status = 200
+to = "/index.html"
+from = "/*"
+```,

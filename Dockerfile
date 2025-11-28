@@ -1,37 +1,31 @@
-# 使用官方 Node.js Slim 镜像 (基于 Debian，体积小)
-FROM node:20-slim
+# Build stage
+FROM node:20-alpine AS builder
 
-# 设置工作目录
 WORKDIR /app
 
-# 安装系统依赖 (如果有需要)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+# 复制 package.json
+COPY package.json package-lock.json* ./
 
-# 复制 package.json 和 package-lock.json
-COPY package*.json ./
+# 安装依赖 (使用 npm install，不要 ci)
+RUN npm install
 
-# 设置 npm registry 并使用淘宝镜像（可选，国内用户推荐）
-RUN npm config set registry https://registry.npmjs.org/
-
-# 安装依赖
-RUN npm ci --only=production && npm cache clean --force
-
-# 复制所有源代码
+# 复制源代码
 COPY . .
 
 # 构建应用
 RUN npm run build
 
+# Production stage - 使用 nginx 作为静态服务器
+FROM nginx:alpine
+
+# 复制 nginx 配置
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# 从 builder 阶段复制构建结果
+COPY --from=builder /app/dist /usr/share/nginx/html
+
 # 暴露端口
-EXPOSE 3000
+EXPOSE 80 3000
 
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
-
-# 启动应用
-CMD ["npm", "start"]
+# 启动 nginx
+CMD ["nginx", "-g", "daemon off;"]

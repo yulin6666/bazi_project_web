@@ -25,7 +25,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # 暴露端口
-EXPOSE 80 3000
+EXPOSE 8080
 
 # 启动 nginx
 CMD ["nginx", "-g", "daemon off;"]

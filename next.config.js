@@ -3,7 +3,13 @@ const nextConfig = {
   reactStrictMode: true,
   output: 'export',
   images: {
-    domains: ['yulin15.zeabur.app'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'yulin15.zeabur.app',
+        pathname: '/**',
+      }
+    ],
     unoptimized: true,
   },
   distDir: 'dist',
